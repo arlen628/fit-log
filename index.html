@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0b">
+<title>FIT LOG</title>
+<style>
+:root{--bg:#f2f2f2;--card:#fff;--text:#111;--muted:#777;--line:#dedede;--black:#0b0b0b;--green:#00a878;--red:#c92828;--orange:#e07b00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","Microsoft YaHei",sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.app{max-width:1050px;margin:auto;min-height:100vh}
+header{background:var(--black);color:white;padding:18px 18px 15px;position:sticky;top:0;z-index:20}
+header .top{display:flex;justify-content:space-between;align-items:center}header h1{font-size:21px;margin:0;letter-spacing:1.5px}header small{color:#aaa}
+main{padding:15px 14px 90px}.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid #e6e6e6;border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 2px 10px #00000008}
+.section{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:3px 0 11px}.section h2{font-size:17px;margin:0}.section h3{font-size:14px;margin:0}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{background:#f8f8f8;border-radius:13px;padding:12px}.metric small{display:block;color:var(--muted);font-size:11px}.metric b{display:block;font-size:22px;margin-top:3px}
+.primary{background:var(--black);color:white;border:0;border-radius:10px;padding:10px 14px;font-weight:650}.green{background:var(--green);color:#fff;border:0;border-radius:9px;padding:8px 12px}.soft{background:#eee;color:#111;border:0;border-radius:9px;padding:9px 12px}.danger{background:#fee;color:var(--red);border:0;border-radius:9px;padding:8px 10px}
+input,select,textarea{width:100%;border:1px solid #ccc;background:white;border-radius:9px;padding:9px;outline:none}input:focus,select:focus,textarea:focus{border-color:#111}
+label{display:block;color:#666;font-size:11px;margin:7px 0 4px}.muted{color:var(--muted)}.tiny{font-size:11px}.pill{display:inline-block;background:#eee;padding:4px 8px;border-radius:20px;font-size:11px}
+nav{position:fixed;bottom:0;left:0;right:0;height:66px;background:#0b0b0b;z-index:30;display:flex;justify-content:center}
+nav button{max-width:210px;flex:1;border:0;background:none;color:#888;font-size:11px;padding:7px}nav button.active{color:#fff}nav .ico{font-size:20px;display:block}
+.tabs{display:flex;gap:7px;overflow:auto;padding-bottom:3px;margin-bottom:10px}.tabs button{white-space:nowrap;border:1px solid #ccc;background:#fff;border-radius:20px;padding:8px 13px}.tabs button.active{background:#111;color:#fff;border-color:#111}
+.progress{height:9px;background:#eee;border-radius:10px;overflow:hidden}.progress>i{display:block;height:100%;background:#111;border-radius:10px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.calhead{text-align:center;color:#888;font-size:11px;padding:4px}.calday{min-height:54px;background:#fafafa;border:1px solid #e4e4e4;border-radius:9px;padding:6px;font-size:12px;position:relative}.calday.out{opacity:.35}.calday.sel{background:#111;color:white}.dot{position:absolute;bottom:5px;left:7px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:680px;font-size:12px}th{background:#111;color:white;padding:8px;border:1px solid #333}td{padding:6px;border:1px solid #ddd}td input{border:0;min-width:70px;padding:5px}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;justify-content:center;z-index:50}.modal.show{display:flex}.sheet{background:#fff;width:100%;max-width:650px;border-radius:18px 18px 0 0;max-height:92vh;overflow:auto;padding:17px 15px 30px}
+.handle{width:42px;height:4px;background:#ccc;border-radius:4px;margin:0 auto 13px}.row{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.setrow{display:grid;grid-template-columns:38px 1fr 1fr 46px;gap:7px;align-items:center;margin:7px 0}.setnum{font-weight:700;text-align:center}.check{background:var(--green);color:white;border:0;border-radius:8px;height:39px;font-weight:800}
+.foodrow{display:grid;grid-template-columns:1.4fr .7fr .7fr .7fr .7fr 34px;gap:6px;align-items:center;margin:6px 0}.foodrow .x{background:#eee;border:0;border-radius:7px;height:37px}
+.chart{height:150px;width:100%;background:#fafafa;border-radius:12px;padding:8px}.chart svg{width:100%;height:100%}
+@media(max-width:650px){.grid3,.grid4{grid-template-columns:repeat(2,1fr)}.calday{min-height:45px}.foodrow{grid-template-columns:1.3fr .7fr .7fr .7fr .7fr 30px}.setrow{grid-template-columns:32px 1fr 1fr 42px}}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FIT LOG">
+<script>if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FIT LOG">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+html,body{margin:0;padding:0;overscroll-behavior:none}
+body{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font-size:16px}
+</style>
+
+<script>
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</head>
+<body>
+<div class="app">
+<header><div class="top"><div><h1>FIT LOG</h1><small>TRAIN · EAT · TRACK</small></div><button class="soft" onclick="openSettings()">⚙</button></div></header>
+<main>
+<section id="home" class="page active">
+<div class="card"><div class="section"><h2>今天</h2><span class="pill" id="homeDate"></span></div><div class="grid4">
+<div class="metric"><small>体重</small><b id="mWeight">—</b><small>kg</small></div><div class="metric"><small>腰围</small><b id="mWaist">—</b><small>cm</small></div><div class="metric"><small>热量</small><b id="mKcal">0</b><small>kcal</small></div><div class="metric"><small>训练</small><b id="mDay">—</b><small id="mDayName">—</small></div>
+</div></div>
+<div class="card"><div class="section"><h2>今日营养</h2><button class="soft" onclick="go('diet')">记录饮食</button></div><div class="grid3">
+<div class="metric"><small>碳水</small><b id="mC">0</b><small id="tC">/ 344 g</small></div><div class="metric"><small>蛋白质</small><b id="mP">0</b><small id="tP">/ 174 g</small></div><div class="metric"><small>脂肪</small><b id="mF">0</b><small id="tF">/ 50 g</small></div>
+</div><div style="margin-top:12px"><div class="progress"><i id="kcalBar" style="width:0%"></i></div><div class="tiny muted" id="kcalText" style="margin-top:5px">0 / 2500 kcal</div></div></div>
+<div class="card"><div class="section"><h2>今天训练</h2><button class="primary" onclick="go('workout')">进入训练</button></div><div id="homeExercises"></div></div>
+<div class="card"><div class="section"><h2>最近体重</h2><span class="tiny muted">趋势</span></div><div class="chart" id="weightChart"></div></div>
+</section>
+
+<section id="calendar" class="page">
+<div class="section"><h2>日历</h2><button class="soft" onclick="calendarToday()">今天</button></div>
+<div class="card"><div class="section"><button class="soft" onclick="moveMonth(-1)">‹</button><h2 id="monthTitle"></h2><button class="soft" onclick="moveMonth(1)">›</button></div><div class="calendar" id="calendarGrid"></div></div>
+<div id="dayDetail"></div>
+</section>
+
+<section id="workout" class="page">
+<div class="section"><h2>训练计划</h2><div><button class="soft" onclick="openSplitEditor()">训练结构</button> <button class="primary" onclick="openPlanEditor()">＋ 编辑计划</button></div></div>
+<div class="tabs" id="dayTabs"></div><div id="workoutArea"></div>
+</section>
+
+<section id="diet" class="page">
+<div class="section"><h2>饮食记录</h2><button class="primary" onclick="addMeal()">＋ 新增餐次</button></div>
+<div class="card"><div class="section"><h3>每日目标</h3><span class="tiny muted">可随时调整</span></div><div class="grid4">
+<div><label>碳水 g</label><input id="targetC" type="number"></div><div><label>蛋白质 g</label><input id="targetP" type="number"></div><div><label>脂肪 g</label><input id="targetF" type="number"></div><div><label>热量 kcal</label><input id="targetK" type="number"></div>
+</div><button class="soft" style="margin-top:10px" onclick="saveTargets()">保存目标</button></div>
+<div id="dietArea"></div>
+</section>
+
+<section id="body" class="page">
+<div class="section"><h2>体型记录</h2><button class="primary" onclick="openBodyModal()">＋ 记录</button></div>
+<div class="card"><div class="grid4">
+<div class="metric"><small>最新体重</small><b id="bLatestWeight">—</b><small>kg</small></div><div class="metric"><small>最新腰围</small><b id="bLatestWaist">—</b><small>cm</small></div><div class="metric"><small>臂围</small><b id="bLatestArm">—</b><small>cm</small></div><div class="metric"><small>腿围</small><b id="bLatestLeg">—</b><small>cm</small></div>
+</div></div><div class="card"><div class="section"><h3>记录历史</h3></div><div class="tablewrap"><table><thead><tr><th>日期</th><th>体重</th><th>腰围</th><th>臂围</th><th>腿围</th><th>备注</th><th></th></tr></thead><tbody id="bodyRows"></tbody></table></div></div>
+<div class="card"><div class="section"><h3>体重趋势</h3></div><div class="chart" id="bodyChart"></div></div>
+</section>
+</main>
+<nav>
+<button class="active" onclick="go('home')"><span class="ico">⌂</span>首页</button>
+<button onclick="go('calendar')"><span class="ico">▦</span>日历</button>
+<button onclick="go('workout')"><span class="ico">🏋</span>训练</button>
+<button onclick="go('diet')"><span class="ico">🍚</span>饮食</button>
+<button onclick="go('body')"><span class="ico">📏</span>体型</button>
+</nav>
+</div>
+
+<div class="modal" id="modal"><div class="sheet"><div class="handle"></div><div id="modalContent"></div></div></div>
+
+<script>
+const KEY="FIT_LOG_V4";
+const DEFAULT_SPLIT=[
+ {name:"PUSH",rest:false},{name:"PULL",rest:false},{name:"LEG",rest:false},
+ {name:"REST",rest:true},{name:"PUSH",rest:false},{name:"PULL",rest:false}
+];
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
+ targets:{c:344,p:174,f:50,k:2500},plans:{},logs:{},meals:[],body:[],
+ selectedDay:0,selectedDate:new Date().toISOString().slice(0,10),split:DEFAULT_SPLIT
+};
+if(!state.split) state.split=DEFAULT_SPLIT.map(x=>({...x}));
+function splitName(i){return state.split[i]?.name||("DAY "+(i+1))}
+function splitDayLabel(i){return "DAY "+(i+1)+" "+splitName(i)}
+
+let calCursor=new Date();
+function save(){localStorage.setItem(KEY,JSON.stringify(state));refreshAll()}
+function migrateLegacy(){
+  const old=localStorage.getItem("FIT_LOG_V3");
+  if(old && !localStorage.getItem(KEY)){
+    try{
+      const o=JSON.parse(old);
+      state={...state,...o,split:o.split||DEFAULT_SPLIT.map(x=>({...x}))};
+      localStorage.setItem(KEY,JSON.stringify(state));
+    }catch(e){}
+  }
+}
+migrateLegacy();
+function iso(d){return d.toISOString().slice(0,10)}
+function today(){return iso(new Date())}
+function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function go(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));const ids=["home","calendar","workout","diet","body"];document.querySelectorAll("nav button")[ids.indexOf(id)].classList.add("active");if(id==="calendar")renderCalendar();if(id==="workout")renderWorkout();if(id==="diet")renderDiet();if(id==="body")renderBody();refreshAll()}
+function refreshAll(){renderHome();if(document.getElementById("calendar").classList.contains("active"))renderCalendar();if(document.getElementById("workout").classList.contains("active"))renderWorkout();if(document.getElementById("diet").classList.contains("active"))renderDiet();if(document.getElementById("body").classList.contains("active"))renderBody()}
+function dayIndex(date=today()){
+  const n=state.split.length||1;
+  const d=new Date(date+"T12:00:00");
+  return ((d.getDay()+6)%7)%n;
+}
+function planFor(i){
+  let k="d"+(i+1);
+  if(!state.plans[k]) state.plans[k]=[];
+  return state.plans[k];
+}
+function renderHome(){
+let d=state.selectedDate===today()?today():today();homeDate.textContent=today();let b=state.body.filter(x=>x.date<=today()).sort((a,b)=>a.date.localeCompare(b.date)).at(-1);mWeight.textContent=b?.weight??"—";mWaist.textContent=b?.waist??"—";
+let ms=state.meals.filter(x=>x.date===today());let sums=ms.reduce((a,m)=>{a.c+=+m.c||0;a.p+=+m.p||0;a.f+=+m.f||0;a.k+=+m.k||0;return a},{c:0,p:0,f:0,k:0});mKcal.textContent=Math.round(sums.k);mC.textContent=Math.round(sums.c);mP.textContent=Math.round(sums.p);mF.textContent=Math.round(sums.f);tC.textContent="/ "+state.targets.c+" g";tP.textContent="/ "+state.targets.p+" g";tF.textContent="/ "+state.targets.f+" g";kcalText.textContent=`${Math.round(sums.k)} / ${state.targets.k} kcal`;kcalBar.style.width=Math.min(100,sums.k/state.targets.k*100)+"%";
+let di=dayIndex();mDay.textContent=("DAY "+(di+1));mDayName.textContent=splitName(di);let p=planFor(di);homeExercises.innerHTML=p.slice(0,5).map((x,j)=>`<div style="padding:9px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between"><span>${j+1}. ${esc(x.name||"未命名动作")}</span><span class="tiny muted">${x.sets} × ${esc(x.reps)}</span></div>`).join("")||"<div class='muted'>休息日</div>";drawChart("weightChart",state.body.filter(x=>x.weight).slice(-12))
+}
+function renderCalendar(){
+let y=calCursor.getFullYear(),m=calCursor.getMonth();monthTitle.textContent=`${y}年 ${m+1}月`;let first=new Date(y,m,1),start=(first.getDay()+6)%7;let last=new Date(y,m+1,0).getDate();let cells=[];["一","二","三","四","五","六","日"].forEach(x=>cells.push(`<div class="calhead">${x}</div>`));for(let i=0;i<start;i++)cells.push(`<div class="calday out"></div>`);for(let n=1;n<=last;n++){let dt=new Date(y,m,n),s=iso(dt),has=state.meals.some(x=>x.date===s)||state.body.some(x=>x.date===s)||Object.values(state.logs).some(arr=>arr?.some(x=>x.date===s&&x.s1));cells.push(`<button class="calday ${s===state.selectedDate?'sel':''}" onclick="selectDate('${s}')">${n}${has?'<i class="dot"></i>':''}</button>`)}calendarGrid.innerHTML=cells.join("");renderDayDetail()}
+function moveMonth(n){calCursor.setMonth(calCursor.getMonth()+n);renderCalendar()}function calendarToday(){calCursor=new Date();selectDate(today())}
+function selectDate(s){state.selectedDate=s;calCursor=new Date(s+"T12:00:00");save();go("calendar")}
+function renderDayDetail(){
+let s=state.selectedDate, di=dayIndex(s),p=planFor(di), meals=state.meals.filter(x=>x.date===s),b=state.body.filter(x=>x.date===s).at(-1),logs=state.logs["d"+(di+1)]||[];
+let sums=meals.reduce((a,m)=>{a.c+=+m.c||0;a.p+=+m.p||0;a.f+=+m.f||0;a.k+=+m.k||0;return a},{c:0,p:0,f:0,k:0});
+dayDetail.innerHTML=`<div class="card"><div class="section"><h2>${s}</h2><span class="pill">${("DAY "+(di+1))} ${esc(splitName(di))}</span></div><div class="grid4"><div class="metric"><small>体重</small><b>${b?.weight??"—"}</b><small>kg</small></div><div class="metric"><small>腰围</small><b>${b?.waist??"—"}</b><small>cm</small></div><div class="metric"><small>热量</small><b>${Math.round(sums.k)}</b><small>kcal</small></div><div class="metric"><small>蛋白质</small><b>${Math.round(sums.p)}</b><small>g</small></div></div></div>
+<div class="card"><div class="section"><h3>当天饮食</h3><button class="soft" onclick="state.selectedDate='${s}';go('diet')">编辑</button></div>${meals.length?meals.map(x=>`<div style="padding:8px 0;border-bottom:1px solid #eee"><b>${esc(x.name||"未命名")}</b><span class="tiny muted">　${x.k} kcal　C ${x.c} / P ${x.p} / F ${x.f}</span></div>`).join(""):"<div class='muted'>暂无饮食记录</div>"}</div>
+<div class="card"><div class="section"><h3>当天训练计划</h3><button class="primary" onclick="state.selectedDay=${di};go('workout')">进入训练</button></div>${p.length?p.map((x,j)=>`<button onclick="openExercise('${x.id}',${di})" style="width:100%;text-align:left;border:0;border-bottom:1px solid #eee;background:#fff;padding:10px 2px"><b>${j+1}. ${esc(x.name||"未命名动作")}</b><span class="tiny muted" style="float:right">${x.sets} × ${esc(x.reps)}　›</span></button>`).join(""):"<div class='muted'>休息日</div>"}</div>`;
+}
+function renderWorkout(){
+dayTabs.innerHTML=state.split.map((d,i)=>`<button class="${i===state.selectedDay?'active':''}" onclick="state.selectedDay=${i};renderWorkout()">DAY ${i+1} ${esc(d.name)}</button>`).join("");
+let p=planFor(state.selectedDay);workoutArea.innerHTML=`<div class="card"><div class="section"><h2>${("DAY "+(state.selectedDay+1))} ${splitName(state.selectedDay)}</h2><span class="pill">${state.split[state.selectedDay]?.rest?"REST DAY":"可编辑计划"}</span></div>${p.length?p.map((x,j)=>`<button onclick="openExercise('${x.id}',${state.selectedDay})" style="display:block;width:100%;text-align:left;border:1px solid #eee;background:#fff;border-radius:12px;padding:12px;margin:7px 0"><div style="display:flex;justify-content:space-between"><b>${j+1}. ${esc(x.name||"未命名动作")}</b><span>›</span></div><div class="tiny muted" style="margin-top:5px">${x.sets} 组 × ${esc(x.reps)}　RIR ${esc(x.rir)}　${esc(x.tempo)}</div></button>`).join(""):"<div class='muted'>休息日</div>"}</div>`
+}
+
+function openSplitEditor(){
+  modalContent.innerHTML=`<div class="section"><div><h2>训练结构</h2><div class="tiny muted">你可以把 PUSH / PULL / LEG 随时改成 TORSO / LIMBS，训练记录不会丢。</div></div><button class="soft" onclick="closeModal()">关闭</button></div>
+  <div id="splitEditor">
+  ${state.split.map((d,i)=>`<div class="card splitrow" data-index="${i}">
+    <div class="section"><h3>DAY ${i+1}</h3>${state.split.length>1?`<button class="danger" onclick="this.closest('.splitrow').remove()">删除这一天</button>`:""}</div>
+    <label>训练日名称</label><input data-f="name" value="${esc(d.name)}" placeholder="例如 PUSH / TORSO / LIMBS">
+    <label style="margin-top:8px"><input data-f="rest" type="checkbox" style="width:auto;margin-right:6px" ${d.rest?"checked":""}>这是休息日</label>
+  </div>`).join("")}</div>
+  <button class="soft" style="margin-top:8px" onclick="addSplitDay()">＋ 添加一天</button>
+  <button class="green" style="width:100%;margin-top:10px" onclick="saveSplit()">保存训练结构</button>`;
+  modal.classList.add("show");
+}
+function addSplitDay(){
+  splitEditor.insertAdjacentHTML("beforeend",`<div class="card splitrow" data-index="${splitEditor.children.length}">
+    <div class="section"><h3>新的一天</h3><button class="danger" onclick="this.closest('.splitrow').remove()">删除</button></div>
+    <label>训练日名称</label><input data-f="name" value="NEW DAY">
+    <label style="margin-top:8px"><input data-f="rest" type="checkbox" style="width:auto;margin-right:6px">这是休息日</label>
+  </div>`);
+}
+function saveSplit(){
+  const rows=[...splitEditor.querySelectorAll(".splitrow")];
+  if(!rows.length){alert("至少保留一天");return}
+  const oldPlans=state.plans;
+  state.split=rows.map((row,i)=>({
+    name:row.querySelector('[data-f="name"]').value.trim()||("DAY "+(i+1)),
+    rest:row.querySelector('[data-f="rest"]').checked
+  }));
+  // 保留原来的每一天训练模板，删除超出新周期的模板。
+  const newPlans={};
+  state.split.forEach((_,i)=>newPlans["d"+(i+1)]=oldPlans["d"+(i+1)]||[]);
+  state.plans=newPlans;
+  state.selectedDay=Math.min(state.selectedDay,state.split.length-1);
+  save();closeModal();renderWorkout();
+}
+function openPlanEditor(){
+let p=planFor(state.selectedDay);modalContent.innerHTML=`<div class="section"><h2>编辑 ${("DAY "+(state.selectedDay+1))} ${splitName(state.selectedDay)}</h2><button class="soft" onclick="closeModal()">关闭</button></div><div id="planEditor">${p.map((x,j)=>planEditorRow(x,j)).join("")}</div><button class="primary" style="margin-top:10px" onclick="addExerciseEditor()">＋ 添加动作</button><button class="green" style="width:100%;margin-top:10px" onclick="savePlanFromEditor()">保存训练计划</button>`;modal.classList.add("show")
+}
+function planEditorRow(x,j){return `<div class="card" data-id="${x.id}" style="margin:8px 0"><div class="section"><h3>动作 ${j+1}</h3><button class="danger" onclick="this.closest('.card').remove()">删除</button></div><div class="row"><div><label>动作名称</label><input data-f="name" value="${esc(x.name)}"></div><div><label>组数</label><input data-f="sets" type="number" value="${x.sets}"></div><div><label>次数</label><input data-f="reps" value="${esc(x.reps)}"></div><div><label>RIR</label><input data-f="rir" value="${esc(x.rir)}"></div><div><label>Tempo</label><input data-f="tempo" value="${esc(x.tempo)}"></div><div><label>技术/强度</label><input data-f="tech" value="${esc(x.tech)}"></div><div style="grid-column:1/-1"><label>视频链接</label><input data-f="video" value="${esc(x.video)}"></div></div></div>`}
+function addExerciseEditor(){planEditor.insertAdjacentHTML("beforeend",planEditorRow({id:crypto.randomUUID(),name:"",sets:4,reps:"8-12",rir:"2",tempo:"",tech:"",video:""},planEditor.children.length))}
+function savePlanFromEditor(){let rows=[...planEditor.children];state.plans["d"+(state.selectedDay+1)]=rows.map((row,j)=>{let o={id:row.dataset.id||crypto.randomUUID(),order:j+1};row.querySelectorAll("[data-f]").forEach(i=>o[i.dataset.f]=i.value);o.sets=+o.sets||0;return o});save();closeModal();renderWorkout()}
+function openExercise(id,di){
+let p=planFor(di),x=p.find(a=>a.id===id);if(!x)return;let k="d"+(di+1),logs=state.logs[k]||[],exlogs=logs.filter(l=>l.exerciseId===id&&l.date),todayLogs=exlogs.filter(l=>l.date===(state.selectedDate||today()));let last=exlogs.at(-1);let rows=Array.from({length:+x.sets||4},(_,i)=>{let old=todayLogs.filter(l=>l.set===i+1).at(-1);return old||{set:i+1,weight:"",reps:"",done:false}});
+modalContent.innerHTML=`<div class="section"><div><h2>${esc(x.name||"未命名动作")}</h2><span class="tiny muted">${("DAY "+(di+1))} · ${x.sets} × ${esc(x.reps)} · RIR ${esc(x.rir)}</span></div><button class="soft" onclick="closeModal()">关闭</button></div><div class="tiny muted" style="margin-bottom:8px">动作、组数、次数范围来自你的训练模板；这里每次只需要输入今天实际完成的重量和次数。</div><div class="card" style="background:#111;color:#fff"><div class="setrow" style="color:#aaa;font-size:11px"><span>SET</span><span>WEIGHT</span><span>REPS</span><span>LOG</span></div>${rows.map((r,i)=>`<div class="setrow"><span class="setnum">${i+1}</span><input id="w${i}" type="number" step=".5" value="${r.weight||""}" placeholder="kg"><input id="r${i}" type="number" value="${r.reps||""}" placeholder="reps"><button class="check" id="c${i}" onclick="toggleSet(${i})">${r.done?"✓":"✓"}</button></div>`).join("")}</div><button class="primary" style="width:100%" onclick="saveExercise('${id}',${di})">保存今天训练</button><div class="card" style="margin-top:12px"><div class="section"><h3>这个动作的全部历史</h3><span class="tiny muted">${exlogs.length} 条</span></div>${exlogs.length?exlogs.slice().reverse().map(l=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee"><span>${l.date} · SET ${l.set}</span><b>${l.weight} kg × ${l.reps}</b></div>`).join(""):"<div class='muted'>还没有历史记录</div>"}</div>`;
+state._exerciseDone=rows.map(r=>!!r.done);modal.classList.add("show")
+}
+function toggleSet(i){state._exerciseDone[i]=!state._exerciseDone[i];document.getElementById("c"+i).textContent=state._exerciseDone[i]?"✓":"✓";document.getElementById("c"+i).style.opacity=state._exerciseDone[i]?"1":".55"}
+function saveExercise(id,di){let k="d"+(di+1);state.logs[k]??=[];let date=state.selectedDate||today();let p=planFor(di),x=p.find(a=>a.id===id);for(let i=0;i<(+x.sets||4);i++){let w=document.getElementById("w"+i).value,r=document.getElementById("r"+i).value;if(!w&&!r)continue;state.logs[k].push({id:crypto.randomUUID(),exerciseId:id,exercise:x.name,date,set:i+1,weight:+w||0,reps:+r||0,done:true})}save();closeModal();alert("训练已保存")}
+function addMeal(){let date=state.selectedDate||today();state.meals.push({id:crypto.randomUUID(),date,name:"",c:0,p:0,f:0,k:0});save();go("diet")}
+function renderDiet(){
+targetC.value=state.targets.c;targetP.value=state.targets.p;targetF.value=state.targets.f;targetK.value=state.targets.k;let date=state.selectedDate||today(),ms=state.meals.map((m,i)=>({...m,i})).filter(m=>m.date===date);let sum=ms.reduce((a,m)=>{a.c+=+m.c||0;a.p+=+m.p||0;a.f+=+m.f||0;a.k+=+m.k||0;return a},{c:0,p:0,f:0,k:0});
+dietArea.innerHTML=`<div class="card"><div class="section"><h3>${date} 饮食总计</h3><span class="pill">${Math.round(sum.k)} / ${state.targets.k} kcal</span></div><div class="grid3"><div class="metric"><small>碳水</small><b>${Math.round(sum.c)}g</b></div><div class="metric"><small>蛋白质</small><b>${Math.round(sum.p)}g</b></div><div class="metric"><small>脂肪</small><b>${Math.round(sum.f)}g</b></div></div></div>${ms.map(m=>mealCard(m)).join("")||`<div class="card" style="text-align:center;color:#888;padding:30px">今天还没有记录，点击“新增餐次”。</div>`}`
+}
+function mealCard(m){return `<div class="card"><div class="section"><h3>${esc(m.name||"未命名餐次")}</h3><button class="danger" onclick="deleteMeal('${m.id}')">删除</button></div><div class="row"><div><label>餐次/食物</label><input value="${esc(m.name)}" onchange="updateMeal('${m.id}','name',this.value)"></div><div><label>日期</label><input type="date" value="${m.date}" onchange="updateMeal('${m.id}','date',this.value)"></div><div><label>碳水 g</label><input type="number" step=".1" value="${m.c}" onchange="updateMeal('${m.id}','c',this.value)"></div><div><label>蛋白质 g</label><input type="number" step=".1" value="${m.p}" onchange="updateMeal('${m.id}','p',this.value)"></div><div><label>脂肪 g</label><input type="number" step=".1" value="${m.f}" onchange="updateMeal('${m.id}','f',this.value)"></div><div><label>热量 kcal</label><input type="number" step="1" value="${m.k}" onchange="updateMeal('${m.id}','k',this.value)"></div></div><div class="tiny muted" style="margin-top:8px">如果热量留空/为 0，可按 4×C + 4×P + 9×F 自动计算。</div><button class="soft" style="margin-top:8px" onclick="autoKcal('${m.id}')">自动计算热量</button></div>`}
+function updateMeal(id,f,v){let m=state.meals.find(x=>x.id===id);if(!m)return;m[f]=(f==="name"||f==="date")?v:+v;if(["c","p","f"].includes(f)&&(!m.k||m.k===0))m.k=4*(+m.c||0)+4*(+m.p||0)+9*(+m.f||0);save()}
+function autoKcal(id){let m=state.meals.find(x=>x.id===id);m.k=Math.round(4*(+m.c||0)+4*(+m.p||0)+9*(+m.f||0));save()}
+function deleteMeal(id){state.meals=state.meals.filter(x=>x.id!==id);save()}
+function saveTargets(){state.targets={c:+targetC.value||0,p:+targetP.value||0,f:+targetF.value||0,k:+targetK.value||0};save()}
+function openBodyModal(){modalContent.innerHTML=`<div class="section"><h2>记录身体数据</h2><button class="soft" onclick="closeModal()">关闭</button></div><div class="row"><div><label>日期</label><input id="bd" type="date" value="${state.selectedDate||today()}"></div><div><label>体重 kg</label><input id="bw" type="number" step=".01"></div><div><label>腰围 cm</label><input id="bwa" type="number" step=".1"></div><div><label>臂围 cm</label><input id="ba" type="number" step=".1"></div><div><label>腿围 cm</label><input id="bl" type="number" step=".1"></div><div><label>备注</label><input id="bn"></div></div><button class="primary" style="width:100%;margin-top:12px" onclick="saveBody()">保存</button>`;modal.classList.add("show")}
+function saveBody(){state.body.push({id:crypto.randomUUID(),date:bd.value||today(),weight:+bw.value||0,waist:+bwa.value||0,arm:+ba.value||0,leg:+bl.value||0,note:bn.value});save();closeModal()}
+function renderBody(){let a=state.body.slice().sort((x,y)=>x.date.localeCompare(y.date));let l=a.at(-1);bLatestWeight.textContent=l?.weight||"—";bLatestWaist.textContent=l?.waist||"—";bLatestArm.textContent=l?.arm||"—";bLatestLeg.textContent=l?.leg||"—";bodyRows.innerHTML=a.slice().reverse().map((x,i)=>`<tr><td>${x.date}</td><td>${x.weight||""}</td><td>${x.waist||""}</td><td>${x.arm||""}</td><td>${x.leg||""}</td><td>${esc(x.note||"")}</td><td><button class="danger" onclick="delBody('${x.id}')">删除</button></td></tr>`).join("")||`<tr><td colspan="7" style="text-align:center">暂无数据</td></tr>`;drawChart("bodyChart",a.filter(x=>x.weight).slice(-15))}
+function delBody(id){state.body=state.body.filter(x=>x.id!==id);save()}
+function drawChart(id,arr){let el=document.getElementById(id);if(!el)return;if(!arr.length){el.innerHTML="<div style='padding:50px;text-align:center;color:#999'>暂无足够数据</div>";return}let vals=arr.map(x=>+x.weight),min=Math.min(...vals)-.5,max=Math.max(...vals)+.5,w=500,h=125;let pts=vals.map((v,i)=>`${10+i*(w-20)/Math.max(1,vals.length-1)},${h-10-(v-min)/(max-min||1)*(h-25)}`).join(" ");el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#111" stroke-width="3"/><circle cx="${10+(vals.length-1)*(w-20)/Math.max(1,vals.length-1)}" cy="${h-10-(vals.at(-1)-min)/(max-min||1)*(h-25)}" r="4" fill="#c92828"/></svg>`}
+function openSettings(){modalContent.innerHTML=`<div class="section"><h2>设置 / 数据</h2><button class="soft" onclick="closeModal()">关闭</button></div><div class="card"><h3>备份</h3><p class="tiny muted">数据默认保存在当前设备。本地数据不会因为刷新页面而消失。</p><button class="primary" onclick="exportData()">导出全部数据 JSON</button> <button class="soft" onclick="document.getElementById('imp').click()">导入 JSON</button><input id="imp" type="file" accept=".json" style="display:none" onchange="importData(event)"></div><div class="card"><h3>版本</h3><p class="tiny muted">FIT LOG v3 · Calendar · Workout History · Nutrition · Body Tracking</p></div>`;modal.classList.add("show")}
+function closeModal(){modal.classList.remove("show")}
+function exportData(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}));a.download="fitlog-v3-backup.json";a.click()}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{state=JSON.parse(r.result);save();closeModal()}catch{alert("导入失败")}};r.readAsText(f)}
+modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
+refreshAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "FIT LOG",
+  "short_name": "FIT LOG",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0b0b",
+  "theme_color": "#0b0b0b",
+  "orientation": "portrait",
+  "lang": "zh-CN",
+  "description": "个人健身、训练、饮食与身体数据记录"
+}
