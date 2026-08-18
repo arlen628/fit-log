@@ -39,10 +39,48 @@ nav button{max-width:210px;flex:1;border:0;background:none;color:#888;font-size:
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FIT LOG">
 <script>if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FIT LOG">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+html,body{margin:0;padding:0;overscroll-behavior:none}
+body{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font-size:16px}
+</style>
+
+<script>
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+#authScreen{position:fixed;inset:0;background:#0b0b0b;color:#fff;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.authBox{width:min(420px,100%);background:#151515;border-radius:22px;padding:24px;box-shadow:0 15px 60px #0008}
+.authBox h1{margin:0 0 4px;font-size:28px;letter-spacing:2px}.authBox p{color:#aaa;font-size:13px}
+.authBox input{background:#222;color:#fff;border:1px solid #444;margin:7px 0}.authBox button{width:100%;margin-top:9px;padding:12px}
+.authMsg{min-height:20px;color:#ffb4b4;font-size:12px;margin-top:8px}.userPill{font-size:11px;color:#bbb;margin-right:8px}
+</style>
 </head>
 <body>
-<div class="app">
-<header><div class="top"><div><h1>FIT LOG</h1><small>TRAIN · EAT · TRACK</small></div><button class="soft" onclick="openSettings()">⚙</button></div></header>
+<div id="authScreen">
+  <div class="authBox">
+    <h1>FIT LOG</h1>
+    <p>登录后，你的训练、饮食和身体数据会跟账号同步。</p>
+    <label>邮箱</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
+    <label>密码</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="至少 6 位">
+    <button class="primary" onclick="login()">登录</button>
+    <button class="soft" onclick="registerAccount()">注册账号</button>
+    <div id="authMsg" class="authMsg"></div>
+  </div>
+</div>
+<div class="app" id="appRoot" style="display:none">
+<header><div class="top"><div><h1>FIT LOG</h1><small>TRAIN · EAT · TRACK</small></div>
+<div style="display:flex;align-items:center"><span class="userPill" id="userPill"></span><button class="soft" onclick="openSettings()">⚙</button></div></div></header>
 <main>
 <section id="home" class="page active">
 <div class="card"><div class="section"><h2>今天</h2><span class="pill" id="homeDate"></span></div><div class="grid4">
@@ -94,7 +132,77 @@ nav button{max-width:210px;flex:1;border:0;background:none;color:#888;font-size:
 <div class="modal" id="modal"><div class="sheet"><div class="handle"></div><div id="modalContent"></div></div></div>
 
 <script>
-const KEY="FIT_LOG_V4";
+
+const SUPABASE_URL = "https://ifkfxwozgaygcislocly.supabase.co";
+const SUPABASE_KEY = "sb_publishable_A_SHM4RBvOqkSTedfAX4Lg_u235mpr0";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+let syncing = false;
+
+function authMessage(msg, ok=false){
+  const el=document.getElementById("authMsg");
+  if(el){el.textContent=msg;el.style.color=ok?"#7ff0c1":"#ffb4b4";}
+}
+async function registerAccount(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email || password.length<6){authMessage("请输入邮箱，并设置至少 6 位密码。");return;}
+  authMessage("正在注册…");
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(error){authMessage(error.message);return;}
+  if(data.session){await enterApp(data.user);return;}
+  authMessage("注册成功！如果项目开启了邮箱验证，请先去邮箱确认，再回来登录。",true);
+}
+async function login(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email || !password){authMessage("请输入邮箱和密码。");return;}
+  authMessage("正在登录…");
+  const {data,error}=await sb.auth.signInWithPassword({email,password});
+  if(error){authMessage(error.message);return;}
+  await enterApp(data.user);
+}
+async function enterApp(user){
+  currentUser=user; 
+  document.getElementById("authScreen").style.display="none";
+  document.getElementById("appRoot").style.display="";
+  document.getElementById("userPill").textContent=user.email||"已登录";
+  await loadCloudState();
+  refreshAll();
+}
+async function loadCloudState(){
+  if(!currentUser)return;
+  const {data,error}=await sb.from("fitlog_data").select("state").eq("user_id",currentUser.id).maybeSingle();
+  if(error){console.warn(error);return;}
+  if(data && data.state){
+    try{state=JSON.parse(JSON.stringify(data.state));localStorage.setItem(KEY,JSON.stringify(state));}
+    catch(e){console.warn(e);}
+  }else{
+    await cloudSave();
+  }
+}
+async function cloudSave(){
+  if(!currentUser || syncing)return;
+  syncing=true;
+  try{
+    const {error}=await sb.from("fitlog_data").upsert(
+      {user_id:currentUser.id,state:state,updated_at:new Date().toISOString()},
+      {onConflict:"user_id"}
+    );
+    if(error) console.warn("Cloud save failed:",error);
+  }finally{syncing=false;}
+}
+const originalSave=save;
+save=function(){ originalSave(); cloudSave(); };
+async function logout(){
+  await sb.auth.signOut();
+  currentUser=null;
+  document.getElementById("appRoot").style.display="none";
+  document.getElementById("authScreen").style.display="flex";
+  authMessage("已退出登录。");
+}
+
+const KEY="FIT_LOG_V5";
 const DEFAULT_SPLIT=[
  {name:"PUSH",rest:false},{name:"PULL",rest:false},{name:"LEG",rest:false},
  {name:"REST",rest:true},{name:"PUSH",rest:false},{name:"PULL",rest:false}
@@ -223,7 +331,10 @@ function closeModal(){modal.classList.remove("show")}
 function exportData(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}));a.download="fitlog-v3-backup.json";a.click()}
 function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{state=JSON.parse(r.result);save();closeModal()}catch{alert("导入失败")}};r.readAsText(f)}
 modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
-refreshAll();
+(async function bootstrapAuth(){
+  const {data}=await sb.auth.getSession();
+  if(data.session) await enterApp(data.session.user);
+})();
 </script>
 </body>
 </html>
